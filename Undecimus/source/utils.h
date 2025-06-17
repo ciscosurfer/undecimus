@@ -92,7 +92,8 @@ extern substitutor_info_t *substitutor_infos[];
 
 enum hashtype {
     HASHTYPE_MD5 = 0,
-    HASHTYPE_SHA1
+    HASHTYPE_SHA1,
+    HASHTYPE_SHA256
 };
 int proc_pidpath(pid_t pid, void *buffer, uint32_t buffersize);
 
@@ -140,6 +141,8 @@ static inline bool init_file(const char *file, int owner, mode_t mode) {
 
 int sha1_to_str(const unsigned char *hash, size_t hashlen, char *buf, size_t buflen);
 NSString *sha1sum(NSString *file);
+NSString *sha256sum(NSString *file);
+bool verifySha256Sums(NSString *sumFile);
 bool verifySha1Sums(NSString *sumFile);
 bool verifySums(NSString *sumFile, enum hashtype hash);
 int _system(const char *cmd);

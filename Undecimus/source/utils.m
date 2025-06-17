@@ -263,6 +263,36 @@ NSString *md5sum(NSString *file)
     return [NSString stringWithUTF8String:checksum];
 }
 
+NSString *sha256sum(NSString *file)
+{
+    uint8_t buffer[0x1000];
+    unsigned char md[CC_SHA256_DIGEST_LENGTH];
+
+    if (![[NSFileManager defaultManager] fileExistsAtPath:file])
+        return nil;
+
+    NSInputStream *fileStream = [NSInputStream inputStreamWithFileAtPath:file];
+    [fileStream open];
+
+    CC_SHA256_CTX c;
+    CC_SHA256_Init(&c);
+    while ([fileStream hasBytesAvailable]) {
+        NSInteger read = [fileStream read:buffer maxLength:0x1000];
+        CC_SHA256_Update(&c, buffer, (CC_LONG)read);
+    }
+
+    CC_SHA256_Final(md, &c);
+
+    char checksum[CC_SHA256_DIGEST_LENGTH * 2 + 1];
+    if (sha1_to_str(md, CC_SHA256_DIGEST_LENGTH, checksum, sizeof(checksum)) != ERR_SUCCESS)
+        return nil;
+    return [NSString stringWithUTF8String:checksum];
+}
+
+bool verifySha256Sums(NSString *sumFile) {
+    return verifySums(sumFile, HASHTYPE_SHA256);
+}
+
 bool verifySha1Sums(NSString *sumFile) {
     return verifySums(sumFile, HASHTYPE_SHA1);
 }
@@ -293,6 +323,9 @@ bool verifySums(NSString *sumFile, enum hashtype hash) {
                 break;
             case HASHTYPE_MD5:
                 fileSum = md5sum(suminfo[1]);
+                break;
+            case HASHTYPE_SHA256:
+                fileSum = sha256sum(suminfo[1]);
                 break;
         }
         if (![fileSum.lowercaseString isEqualToString:suminfo[0]]) {
